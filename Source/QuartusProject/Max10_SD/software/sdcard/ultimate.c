@@ -69,6 +69,7 @@ static int ledVal = 0x1E;
 #define CART_TYPE_TURBOSOFT 		36	// 64k,128k
 #define CART_TYPE_ATRAX_128K		37	// 128k
 #define CART_TYPE_4_K				38  // 4k
+#define CART_TYPE_ATARIMAX_8MBIT_N	39	// 1024k
 #define CART_TYPE_XEX				254
 #define CART_TYPE_NONE				255
 
@@ -331,6 +332,7 @@ int load_cart(char *filename)
 					cart_type = CART_TYPE_4_K;
 					memset(dst32, 255, 4096);
 				}
+				else if (car_type == 75) cart_type = CART_TYPE_ATARIMAX_8MBIT_N;
 				else { cart_type = -2; break; }	// unsupported car type
 				bytesToCopy -= 16;
 				src32 += 4;

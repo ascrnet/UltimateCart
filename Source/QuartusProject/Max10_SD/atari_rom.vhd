@@ -87,6 +87,7 @@ ARCHITECTURE structure OF atari_rom IS
 	constant CART_TYPE_TURBOSOFT : integer := 36;
 	constant CART_TYPE_ATRAX_128K : integer := 37;
 	constant CART_TYPE_4K : integer := 38;
+	constant CART_TYPE_ATARIMAX_8MBIT_NEW : integer := 39;
 	constant CART_TYPE_XEX : integer := 254;
 	constant CART_TYPE_NONE : integer := 255;
 
@@ -257,6 +258,8 @@ BEGIN
 						low_bank_enabled <= '1';
 					elsif (new_cart_type = CART_TYPE_ATARIMAX_8MBIT) then
 						bank_out <= "1111111";
+					elsif (new_cart_type = CART_TYPE_ATARIMAX_8MBIT_NEW) then
+						bank_out <= "0000000";						
 					elsif (new_cart_type >= CART_TYPE_XEGS_32K and new_cart_type <= CART_TYPE_XEGS_1024K) then
 						low_bank_enabled <= '1';
 					elsif (new_cart_type >= CART_TYPE_SW_XEGS_32K and new_cart_type <= CART_TYPE_SW_XEGS_1024K) then
@@ -294,7 +297,7 @@ BEGIN
 								bank_out <= "000" & cart_addr_reg(3 downto 0);
 							end if;
 						-- atarimax 8mbit bankswitching
-						when CART_TYPE_ATARIMAX_8MBIT => 
+						when CART_TYPE_ATARIMAX_8MBIT | CART_TYPE_ATARIMAX_8MBIT_NEW => 
 							high_bank_enabled <= not cart_addr_reg(7);
 							bank_out <= cart_addr_reg(6 downto 0);
 						-- xegs carts - schematic has RW as NC
