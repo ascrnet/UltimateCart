@@ -88,6 +88,16 @@ ARCHITECTURE structure OF atari_rom IS
 	constant CART_TYPE_ATRAX_128K : integer := 37;
 	constant CART_TYPE_4K : integer := 38;
 	constant CART_TYPE_ATARIMAX_8MBIT_NEW : integer := 39;
+	constant CART_TYPE_JACART_8 : integer := 40;
+	constant CART_TYPE_JACART_16 : integer := 41;
+	constant CART_TYPE_JACART_32 : integer := 42;
+	constant CART_TYPE_JACART_64 : integer := 43;
+	constant CART_TYPE_JACART_128 : integer := 44;
+	constant CART_TYPE_JACART_256 : integer := 45;
+	constant CART_TYPE_JACART_512 : integer := 46;
+	constant CART_TYPE_JACART_1024 : integer := 47;
+	constant CART_TYPE_LOW_BANK_8K : integer := 48;
+	constant CART_TYPE_2K : integer := 49;
 	constant CART_TYPE_XEX : integer := 254;
 	constant CART_TYPE_NONE : integer := 255;
 
@@ -277,6 +287,9 @@ BEGIN
 					elsif (new_cart_type = CART_TYPE_SIC) then
 						low_bank_enabled <= '1';
 						sic_d500_byte <= (others => '0');
+					elsif (new_cart_type = CART_TYPE_LOW_BANK_8K) then
+						low_bank_enabled <= '1';
+						high_bank_enabled <= '0';
 					end if;
 					cart_type <= new_cart_type;
 				end if;
@@ -379,6 +392,31 @@ BEGIN
 						when CART_TYPE_ATRAX_128K => 
 							high_bank_enabled <= not CART_DATA(7);
 							bank_out <= "000" & CART_DATA(3 downto 0);
+						-- Jataricart 8k & 1024k
+						when CART_TYPE_JACART_8 => 
+							high_bank_enabled <= not cart_addr_reg(7); 
+							bank_out <= "0000000";
+						when CART_TYPE_JACART_16 => 
+							high_bank_enabled <= not cart_addr_reg(7); 
+							bank_out <= "000000" & cart_addr_reg(0);
+						when CART_TYPE_JACART_32 => 
+							high_bank_enabled <= not cart_addr_reg(7); 
+							bank_out <= "00000" & cart_addr_reg(1 downto 0);
+						when CART_TYPE_JACART_64 => 
+							high_bank_enabled <= not cart_addr_reg(7); 
+							bank_out <= "0000" & cart_addr_reg(2 downto 0);
+						when CART_TYPE_JACART_128 => 
+							high_bank_enabled <= not cart_addr_reg(7); 
+							bank_out <= "000" & cart_addr_reg(3 downto 0);
+						when CART_TYPE_JACART_256 => 
+							high_bank_enabled <= not cart_addr_reg(7); 
+							bank_out <= "00" & cart_addr_reg(4 downto 0);
+						when CART_TYPE_JACART_512 => 
+							high_bank_enabled <= not cart_addr_reg(7); 
+							bank_out <= "0" & cart_addr_reg(5 downto 0);
+						when CART_TYPE_JACART_1024 => 
+							high_bank_enabled <= not cart_addr_reg(7); 
+							bank_out <= cart_addr_reg(6 downto 0);
 						when others => null;
 					end case;
 					
@@ -544,6 +582,8 @@ BEGIN
 					end if;
 				when CART_TYPE_4k =>
 					sram_address_in <= "00000000" & cart_addr_reg(11 downto 0); -- 0xB000 access
+				when CART_TYPE_2k =>
+					sram_address_in <= "000000000" & cart_addr_reg(10 downto 0); -- 0xB800 access
 				when others => null;
 			end case;
 			

@@ -70,6 +70,16 @@ static int ledVal = 0x1E;
 #define CART_TYPE_ATRAX_128K		37	// 128k
 #define CART_TYPE_4_K				38  // 4k
 #define CART_TYPE_ATARIMAX_8MBIT_N	39	// 1024k
+#define CART_TYPE_JACART_8			40	// 8k
+#define CART_TYPE_JACART_16			41	// 16k
+#define CART_TYPE_JACART_32			42	// 32k
+#define CART_TYPE_JACART_64			43	// 64k
+#define CART_TYPE_JACART_128		44	// 128k
+#define CART_TYPE_JACART_256		45	// 256k
+#define CART_TYPE_JACART_512		46	// 512k
+#define CART_TYPE_JACART_1024		47	// 1024k
+#define CART_TYPE_LOW_BANK_8K		48	// 8k
+#define CART_TYPE_2_K				49	// 2k
 #define CART_TYPE_XEX				254
 #define CART_TYPE_NONE				255
 
@@ -327,12 +337,25 @@ int load_cart(char *filename)
 				else if (car_type == 44) cart_type = CART_TYPE_OSS_8K;
 				else if (car_type == 45) cart_type = CART_TYPE_OSS_16K_043M;
 				else if (car_type == 50 || car_type == 51) cart_type = CART_TYPE_TURBOSOFT;
-				else if (car_type >= 54 && car_type <=56) cart_type = CART_TYPE_SIC;
+				else if (car_type == 53) cart_type = CART_TYPE_LOW_BANK_8K;
+				else if ((car_type >= 54 && car_type <=56) || car_type == 83) cart_type = CART_TYPE_SIC;
+				else if (car_type == 57 ) {
+					cart_type = CART_TYPE_2_K;
+					memset(dst32, 255, 6144);
+				}
 				else if (car_type == 58 ) {
 					cart_type = CART_TYPE_4_K;
 					memset(dst32, 255, 4096);
 				}
 				else if (car_type == 75) cart_type = CART_TYPE_ATARIMAX_8MBIT_N;
+				else if (car_type == 104) cart_type = CART_TYPE_JACART_8;
+				else if (car_type == 105) cart_type = CART_TYPE_JACART_16;
+				else if (car_type == 106) cart_type = CART_TYPE_JACART_32;
+				else if (car_type == 107) cart_type = CART_TYPE_JACART_64;
+				else if (car_type == 108) cart_type = CART_TYPE_JACART_128;
+				else if (car_type == 109) cart_type = CART_TYPE_JACART_256;
+				else if (car_type == 110) cart_type = CART_TYPE_JACART_512;
+				else if (car_type == 111) cart_type = CART_TYPE_JACART_1024;
 				else { cart_type = -2; break; }	// unsupported car type
 				bytesToCopy -= 16;
 				src32 += 4;
