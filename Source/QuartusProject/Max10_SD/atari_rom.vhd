@@ -285,7 +285,6 @@ BEGIN
 					elsif (new_cart_type = CART_TYPE_OSS_16K_034M or new_cart_type = CART_TYPE_OSS_16K_043M) then
 						oss_bank <= "00";
 					elsif (new_cart_type = CART_TYPE_SIC) then
-						low_bank_enabled <= '1';
 						sic_d500_byte <= (others => '0');
 					elsif (new_cart_type = CART_TYPE_LOW_BANK_8K) then
 						low_bank_enabled <= '1';
