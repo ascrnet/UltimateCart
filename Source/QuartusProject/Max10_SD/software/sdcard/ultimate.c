@@ -81,6 +81,7 @@ static int ledVal = 0x1E;
 #define CART_TYPE_LOW_BANK_8K		48	// 8k
 #define CART_TYPE_2_K				49	// 2k
 #define CART_TYPE_SIC_PLUS_8MBIT	50	// 1024k
+#define CART_TYPE_ULTRACART_32K		51	// 32k
 #define CART_TYPE_XEX				254
 #define CART_TYPE_NONE				255
 
@@ -338,6 +339,7 @@ int load_cart(char *filename)
 				else if (car_type == 44) cart_type = CART_TYPE_OSS_8K;
 				else if (car_type == 45) cart_type = CART_TYPE_OSS_16K_043M;
 				else if (car_type == 50 || car_type == 51) cart_type = CART_TYPE_TURBOSOFT;
+				else if (car_type == 52) cart_type = CART_TYPE_ULTRACART_32K;
 				else if (car_type == 53) cart_type = CART_TYPE_LOW_BANK_8K;
 				else if (car_type >= 54 && car_type <=56) cart_type = CART_TYPE_SIC;
 				else if (car_type == 57 ) {

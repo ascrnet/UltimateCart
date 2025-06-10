@@ -99,6 +99,7 @@ ARCHITECTURE structure OF atari_rom IS
 	constant CART_TYPE_LOW_BANK_8K : integer := 48;
 	constant CART_TYPE_2K : integer := 49;
 	constant CART_TYPE_SIC_PLUS_8MBIT : integer := 50;
+	constant CART_TYPE_ULTRACART_32K : integer := 51;
 	constant CART_TYPE_XEX : integer := 254;
 	constant CART_TYPE_NONE : integer := 255;
 
@@ -137,6 +138,10 @@ ARCHITECTURE structure OF atari_rom IS
 	-- SIC d500 byte
 	signal sic_d500_byte : std_logic_vector(7 downto 0);
 	signal sic_read_d500 : boolean := false;
+	
+	-- Ultracart
+	signal ultracart_bank : std_logic_vector(1 downto 0) := "00";
+	signal ultracart_enabled : std_logic := '1';
 	
 	-- XEX access
 	signal file_offset: std_logic_vector(15 downto 0);
@@ -417,6 +422,22 @@ BEGIN
 						when CART_TYPE_JACART_1024K => 
 							high_bank_enabled <= not cart_addr_reg(7); 
 							bank_out <= cart_addr_reg(6 downto 0);
+						-- Ultracart 32k
+						when CART_TYPE_ULTRACART_32K =>
+							if (cart_rw_reg = '1') then
+								if (ultracart_enabled = '1') then
+									if (ultracart_bank = "11") then
+											ultracart_enabled <= '0';
+											high_bank_enabled <= '0';
+										else
+											ultracart_bank <= std_logic_vector(unsigned(ultracart_bank) + 1);
+									end if;
+									else
+										ultracart_enabled <= '1';
+										ultracart_bank <= "00";
+										high_bank_enabled <= '1';
+									end if;
+							end if;
 						when others => null;
 					end case;
 					
@@ -592,6 +613,12 @@ BEGIN
 					sram_address_in <= "00000000" & cart_addr_reg(11 downto 0); -- 0xB000 access
 				when CART_TYPE_2k =>
 					sram_address_in <= "000000000" & cart_addr_reg(10 downto 0); -- 0xB800 access
+				when CART_TYPE_ULTRACART_32K =>
+					if (ultracart_enabled = '1' and cart_s5_reg = '0') then
+						sram_address_in <= "00000" & ultracart_bank & cart_addr_reg(12 downto 0);
+					else
+						sram_ce <= '0';
+					end if;
 				when others => null;
 			end case;
 			
