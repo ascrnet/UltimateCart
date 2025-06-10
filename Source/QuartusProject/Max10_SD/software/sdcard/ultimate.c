@@ -82,6 +82,7 @@ static int ledVal = 0x1E;
 #define CART_TYPE_2_K				49	// 2k
 #define CART_TYPE_SIC_PLUS_8MBIT	50	// 1024k
 #define CART_TYPE_ULTRACART_32K		51	// 32k
+#define CART_TYPE_DCART_512K		52	// 512k
 #define CART_TYPE_XEX				254
 #define CART_TYPE_NONE				255
 
@@ -360,6 +361,7 @@ int load_cart(char *filename)
 				else if (car_type == 109) cart_type = CART_TYPE_JACART_256K;
 				else if (car_type == 110) cart_type = CART_TYPE_JACART_512K;
 				else if (car_type == 111) cart_type = CART_TYPE_JACART_1024K;
+				else if (car_type == 112) cart_type = CART_TYPE_DCART_512K;
 				else { cart_type = -2; break; }	// unsupported car type
 				bytesToCopy -= 16;
 				src32 += 4;

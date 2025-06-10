@@ -100,6 +100,7 @@ ARCHITECTURE structure OF atari_rom IS
 	constant CART_TYPE_2K : integer := 49;
 	constant CART_TYPE_SIC_PLUS_8MBIT : integer := 50;
 	constant CART_TYPE_ULTRACART_32K : integer := 51;
+	constant CART_TYPE_DCART_512K : integer := 52;
 	constant CART_TYPE_XEX : integer := 254;
 	constant CART_TYPE_NONE : integer := 255;
 
@@ -142,6 +143,9 @@ ARCHITECTURE structure OF atari_rom IS
 	-- Ultracart
 	signal ultracart_bank : std_logic_vector(1 downto 0) := "00";
 	signal ultracart_enabled : std_logic := '1';
+	
+	-- DCart
+	signal dcart_read_d500 : boolean := false;
 	
 	-- XEX access
 	signal file_offset: std_logic_vector(15 downto 0);
@@ -224,7 +228,7 @@ BEGIN
 	CART_RD5 <= high_bank_enabled;
 	CART_RD4 <= low_bank_enabled;
 	
-	CART_DATA <= data_out when ((CART_S5 = '0' and high_bank_enabled = '1') or (CART_S4 = '0' and low_bank_enabled = '1') or (CART_CTL = '0' and (sic_read_d500 or xex_read_d500))) 
+	CART_DATA <= data_out when ((CART_S5 = '0' and high_bank_enabled = '1') or (CART_S4 = '0' and low_bank_enabled = '1') or (CART_CTL = '0' and (sic_read_d500 or xex_read_d500 or dcart_read_d500 ))) 
 					else "ZZZZZZZZ";
 	
 	sram_cart_bus_enabled <= '0' when cart_type = CART_TYPE_BOOT else '1';
@@ -246,6 +250,9 @@ BEGIN
 									and CART_RW = '1' and CART_ADDR(7 downto 5) = "000");
 			-- XEX D500-D5FF read ?
 			xex_read_d500 <= (cart_type = CART_TYPE_XEX and CART_CTL = '0' and CART_RW = '1');
+			
+			-- DCART D500-D5FF read?
+			dcart_read_d500 <= (cart_type = CART_TYPE_DCART_512K and CART_CTL = '0' and CART_RW = '1');
 		end if;
 	end process;
 	
@@ -474,6 +481,10 @@ BEGIN
 									bank_out <= "0" & CART_DATA(7) & CART_DATA(4 downto 0);
 									sic_d500_byte <= CART_DATA;
 								end if;
+							-- DCART bankswitching
+							when CART_TYPE_DCART_512K => 
+								high_bank_enabled <= not cart_addr_reg(7);
+								bank_out <= '0' & cart_addr_reg(5 downto 0);
 							-- xex loader support - D500,D501 are lo-byte hi-byte of file offset (in 256 byte chunks)
 							when CART_TYPE_XEX =>
 								if (cart_addr_reg(7 downto 0) = x"00") then
@@ -520,7 +531,7 @@ BEGIN
 	-- When we get a new address from the cartridge port, set up the RAM address bus
 	-- to get the correct data
 	process (cart_addr_reg, cart_s4_reg, cart_s5_reg, cart_ctl_reg,
-				cart_type, bank_out, bounty_bob_bank8, bounty_bob_bank9, oss_bank)
+				cart_type, bank_out, bounty_bob_bank8, bounty_bob_bank9, oss_bank, dcart_read_d500)
 	begin
 		fpga_address_in <= (others => '0');
 		sram_address_in <= (others => '0');
@@ -537,7 +548,7 @@ BEGIN
 
 		elsif (cart_type /= CART_TYPE_NONE) then
 		
-			if (cart_s5_reg = '0' or cart_s4_reg = '0') then
+			if (cart_s5_reg = '0' or cart_s4_reg = '0' or dcart_read_d500) then
 				sram_ce <= '1';
 			end if;
 			
@@ -618,6 +629,11 @@ BEGIN
 						sram_address_in <= "00000" & ultracart_bank & cart_addr_reg(12 downto 0);
 					else
 						sram_ce <= '0';
+					end if;
+				when CART_TYPE_DCART_512K =>
+					if dcart_read_d500 then
+						-- Map to what is B5xx
+						sram_address_in <= bank_out & "10101" & cart_addr_reg(7 downto 0);
 					end if;
 				when others => null;
 			end case;
