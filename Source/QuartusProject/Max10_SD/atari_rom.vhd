@@ -98,6 +98,7 @@ ARCHITECTURE structure OF atari_rom IS
 	constant CART_TYPE_JACART_1024K : integer := 47;
 	constant CART_TYPE_LOW_BANK_8K : integer := 48;
 	constant CART_TYPE_2K : integer := 49;
+	constant CART_TYPE_SIC_PLUS_8MBIT : integer := 50;
 	constant CART_TYPE_XEX : integer := 254;
 	constant CART_TYPE_NONE : integer := 255;
 
@@ -236,7 +237,7 @@ BEGIN
 			cart_s5_reg <= CART_S5;
 			cart_rw_reg <= CART_RW;
 			-- SIC D500-D51F read ?
-			sic_read_d500 <= (cart_type = CART_TYPE_SIC and CART_CTL = '0'
+			sic_read_d500 <= ((cart_type = CART_TYPE_SIC or cart_type = CART_TYPE_SIC_PLUS_8MBIT) and CART_CTL = '0'
 									and CART_RW = '1' and CART_ADDR(7 downto 5) = "000");
 			-- XEX D500-D5FF read ?
 			xex_read_d500 <= (cart_type = CART_TYPE_XEX and CART_CTL = '0' and CART_RW = '1');
@@ -284,7 +285,7 @@ BEGIN
 						oss_bank <= "01";
 					elsif (new_cart_type = CART_TYPE_OSS_16K_034M or new_cart_type = CART_TYPE_OSS_16K_043M) then
 						oss_bank <= "00";
-					elsif (new_cart_type = CART_TYPE_SIC) then
+					elsif (new_cart_type = CART_TYPE_SIC or new_cart_type = CART_TYPE_SIC_PLUS_8MBIT) then
 						sic_d500_byte <= (others => '0');
 					elsif (new_cart_type = CART_TYPE_LOW_BANK_8K) then
 						low_bank_enabled <= '1';
@@ -444,6 +445,14 @@ BEGIN
 									bank_out <= "00" & CART_DATA(4 downto 0);
 									sic_d500_byte <= CART_DATA;
 								end if;
+							-- Sic plus 
+							when CART_TYPE_SIC_PLUS_8MBIT =>
+								if (cart_addr_reg(7 downto 6) = "00") then
+									high_bank_enabled <= not CART_DATA(6);
+									low_bank_enabled <= CART_DATA(5);
+									bank_out <= "0" & CART_DATA(7) & CART_DATA(4 downto 0);
+									sic_d500_byte <= CART_DATA;
+								end if;
 							-- xex loader support - D500,D501 are lo-byte hi-byte of file offset (in 256 byte chunks)
 							when CART_TYPE_XEX =>
 								if (cart_addr_reg(7 downto 0) = x"00") then
@@ -572,7 +581,7 @@ BEGIN
 					else
 						sram_address_in <= "00000011" & cart_addr_reg(11 downto 0); -- 0xB000 access
 					end if;
-				when CART_TYPE_SIC | CART_TYPE_MEGACART_16K | CART_TYPE_MEGACART_32K | CART_TYPE_MEGACART_64K |
+				when CART_TYPE_SIC | CART_TYPE_SIC_PLUS_8MBIT | CART_TYPE_MEGACART_16K | CART_TYPE_MEGACART_32K | CART_TYPE_MEGACART_64K |
 						CART_TYPE_MEGACART_128K | CART_TYPE_MEGACART_256K | CART_TYPE_MEGACART_512K | CART_TYPE_MEGACART_1024K =>
 					if (cart_s4_reg = '0') then
 						sram_address_in <= bank_out(5 downto 0) & "0" & cart_addr_reg;

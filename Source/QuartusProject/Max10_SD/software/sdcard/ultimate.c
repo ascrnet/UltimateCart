@@ -80,6 +80,7 @@ static int ledVal = 0x1E;
 #define CART_TYPE_JACART_1024K		47	// 1024k
 #define CART_TYPE_LOW_BANK_8K		48	// 8k
 #define CART_TYPE_2_K				49	// 2k
+#define CART_TYPE_SIC_PLUS_8MBIT	50	// 1024k
 #define CART_TYPE_XEX				254
 #define CART_TYPE_NONE				255
 
@@ -347,6 +348,7 @@ int load_cart(char *filename)
 					cart_type = CART_TYPE_4_K;
 					memset(dst32, 255, 4096);
 				}
+				else if (car_type == 83) cart_type = CART_TYPE_SIC_PLUS_8MBIT;
 				else if (car_type == 75) cart_type = CART_TYPE_ATARIMAX_8MBIT_N;
 				else if (car_type == 104) cart_type = CART_TYPE_JACART_8K;
 				else if (car_type == 105) cart_type = CART_TYPE_JACART_16K;
